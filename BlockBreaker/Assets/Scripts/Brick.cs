@@ -4,11 +4,20 @@ using System.Collections;
 public class Brick : MonoBehaviour {
 
 	public Sprite[] hitSprites;
+	public static int breakableCount = 0;
+	public AudioClip crack;
+
 	private LevelManager levelManager;
 	private int timesHit;
+	private	bool isBreakable;
+	
 
 	// Use this for initialization
 	void Start () {
+		isBreakable = (this.tag == "breakable");
+		if (isBreakable) {
+			breakableCount++;
+		}
 		levelManager = GameObject.FindObjectOfType<LevelManager>();
 		timesHit = 0;
 	}
@@ -19,7 +28,7 @@ public class Brick : MonoBehaviour {
 	}
 	
 	void OnCollisionEnter2D (Collision2D collision) {
-		bool isBreakable = (this.tag == "breakable");
+		AudioSource.PlayClipAtPoint (crack, transform.position);
 		if (isBreakable) {
 			HandleHits();
 		}
@@ -30,6 +39,8 @@ public class Brick : MonoBehaviour {
 		timesHit++;
 		int maxHits = hitSprites.Length + 1;
 		if (timesHit >= maxHits){
+			breakableCount--;
+			levelManager.BrickDestroyed();
 			Destroy (gameObject);
 		} else {
 			LoadSprites();
@@ -40,8 +51,5 @@ public class Brick : MonoBehaviour {
 		int spriteIndex = timesHit - 1;
 		if (hitSprites[spriteIndex]) {this.GetComponent<SpriteRenderer>().sprite = hitSprites[spriteIndex];}
 	}
-	// TODO remove this method once we can actually win
-	void SimulateWin() {
-		levelManager.LoadNextLevel();
-	}	
+
 }
